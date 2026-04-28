@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PT Tracker">
+<meta name="theme-color" content="#0a0a0f">
+<title>PT Tracker</title>
+<link rel="manifest" href="manifest.json">
+<!-- PWA icons inline fallback -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230a0a0f'/><text y='.9em' font-size='80' x='10'>💪</text></svg>">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
+html,body{height:100%;overflow:hidden;background:#0a0a0f}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#e4e4e7;overscroll-behavior:none}
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh;max-width:430px;margin:0 auto;background:#0a0a0f}
+.header{padding:env(safe-area-inset-top,20px) 18px 12px;padding-top:calc(env(safe-area-inset-top,0px) + 16px);border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0}
+.header-top{display:flex;align-items:flex-start;justify-content:space-between}
+.app-name{font-size:17px;font-weight:700;color:#22d3ee;letter-spacing:-0.3px}
+.app-sub{font-size:11px;color:#3f3f46;margin-top:1px}
+.header-meta{font-size:11px;color:#52525b;margin-top:3px}
+.weight-display{text-align:right}
+.weight-big{font-size:26px;font-weight:700;color:#e4e4e7}
+.weight-unit{font-size:13px;color:#71717a}
+.weight-delta{font-size:12px;margin-top:2px}
+.tabs{display:flex;gap:6px;padding:10px 18px 8px;overflow-x:auto;scrollbar-width:none;flex-shrink:0}
+.tabs::-webkit-scrollbar{display:none}
+.tab{font-size:12px;padding:7px 14px;border-radius:999px;white-space:nowrap;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);color:#71717a;cursor:pointer;transition:all 0.15s;font-weight:400;-webkit-appearance:none}
+.tab.active{background:#22d3ee;color:#0a0a0f;border-color:#22d3ee;font-weight:700}
+.content{flex:1;overflow-y:auto;padding:14px 18px 20px;-webkit-overflow-scrolling:touch}
+.content::-webkit-scrollbar{display:none}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.stat-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:14px 12px}
+.stat-label{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.35);margin-bottom:4px}
+.stat-val{font-size:22px;font-weight:700}
+.stat-sub{font-size:11px;color:rgba(255,255,255,0.3);margin-top:2px}
+.section{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:14px;margin-bottom:12px}
+.section-title{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.3);margin-bottom:10px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px}
+.row:last-child{border-bottom:none}
+.row-label{color:#71717a}
+.row-val{color:#e4e4e7;text-align:right;max-width:60%;word-break:break-word}
+.goal-banner{background:linear-gradient(135deg,rgba(34,211,238,0.08),rgba(99,102,241,0.08));border:1px solid rgba(34,211,238,0.15);border-radius:16px;padding:14px;font-size:13px;color:#a1a1aa}
+.goal-banner span{color:#22d3ee;font-weight:700}
+.workout-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:16px;overflow:hidden;margin-bottom:10px}
+.workout-header{padding:14px;cursor:pointer;width:100%;text-align:left;background:none;border:none;color:inherit;display:block}
+.workout-title{font-size:14px;font-weight:600;color:#e4e4e7}
+.workout-date{font-size:12px;color:#52525b;margin-top:3px}
+.workout-meta{display:flex;align-items:center;gap:8px;margin-top:6px}
+.cardio-badge{font-size:11px;padding:3px 8px;border-radius:999px;background:rgba(34,211,238,0.1);color:#67e8f9;border:1px solid rgba(34,211,238,0.2)}
+.toggle-icon{color:#52525b;font-size:11px;float:right}
+.workout-exercises{padding:0 14px 14px;border-top:1px solid rgba(255,255,255,0.06)}
+.ex-label{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.25);padding-top:12px;margin-bottom:8px}
+.ex-card{background:rgba(255,255,255,0.03);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.ex-name{font-size:13px;font-weight:500;margin-bottom:8px}
+.sets-wrap{display:flex;flex-wrap:wrap;gap:5px}
+.set-chip{font-size:11px;padding:3px 8px;border-radius:8px;background:rgba(255,255,255,0.06);color:#a1a1aa}
+.weight-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+.weight-row:last-child{border-bottom:none}
+.wr-date{font-size:13px}
+.wr-note{font-size:11px;color:#52525b;margin-top:2px}
+.wr-kg{font-size:14px;font-weight:700;color:#22d3ee}
+.wr-delta{font-size:11px;margin-top:2px}
+.type-btns{display:flex;gap:6px;margin-bottom:14px}
+.type-btn{flex:1;font-size:12px;padding:9px 4px;border-radius:12px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);color:#71717a;cursor:pointer;font-weight:400;-webkit-appearance:none}
+.type-btn.active{background:#22d3ee;color:#0a0a0f;border-color:#22d3ee;font-weight:700}
+.hint-box{background:rgba(34,211,238,0.04);border:1px solid rgba(34,211,238,0.12);border-radius:12px;padding:10px 12px;margin-bottom:12px}
+.hint-title{font-size:11px;color:#67e8f9;margin-bottom:4px}
+.hint-text{font-size:11px;color:rgba(255,255,255,0.3);line-height:1.5;white-space:pre-wrap}
+textarea{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:14px;font-size:14px;color:#e4e4e7;resize:none;outline:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.5;margin-bottom:10px;-webkit-appearance:none}
+textarea:focus{border-color:rgba(34,211,238,0.4)}
+.submit-btn{width:100%;padding:14px;border-radius:16px;font-size:14px;font-weight:700;cursor:pointer;border:none;-webkit-appearance:none}
+.preview-card{border:1px solid rgba(52,211,153,0.2);border-radius:16px;overflow:hidden;margin-top:12px}
+.preview-header{background:rgba(52,211,153,0.08);padding:12px 14px;display:flex;align-items:center;justify-content:space-between}
+.preview-title{font-size:13px;font-weight:600;color:#6ee7b7}
+.preview-badge{font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(52,211,153,0.15);color:#6ee7b7}
+.preview-body{padding:14px}
+.preview-actions{padding:0 14px 14px;display:flex;gap:8px}
+.confirm-btn{flex:1;padding:11px;border-radius:12px;font-size:13px;font-weight:700;background:#22d3ee;color:#0a0a0f;border:none;cursor:pointer}
+.cancel-btn{padding:11px 16px;border-radius:12px;font-size:13px;background:rgba(255,255,255,0.06);color:#71717a;border:none;cursor:pointer}
+.done-card{background:rgba(52,211,153,0.06);border:1px solid rgba(52,211,153,0.15);border-radius:16px;padding:24px;text-align:center;margin-top:12px}
+.done-icon{font-size:32px;margin-bottom:6px}
+.done-text{font-size:14px;font-weight:600;color:#6ee7b7}
+.error-card{background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);border-radius:16px;padding:14px;text-align:center;font-size:13px;color:#fca5a5;margin-top:12px}
+.footer{padding:10px 18px calc(env(safe-area-inset-bottom,0px) + 10px);text-align:center;flex-shrink:0;border-top:1px solid rgba(255,255,255,0.04)}
+.footer-text{font-size:11px;color:#3f3f46}
+.empty{text-align:center;padding:48px 0;font-size:13px;color:#52525b}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <div class="app-name">💪 PT Tracker</div>
+        <div class="app-sub">Lean Aesthetic · AI-Powered</div>
+        <div class="header-meta">22yo · Baseline: 26 มี.ค. 2026</div>
+      </div>
+      <div class="weight-display">
+        <div class="weight-big" id="hdr-weight">— <span class="weight-unit">kg</span></div>
+        <div class="weight-delta" id="hdr-delta" style="color:#52525b">—</div>
+      </div>
+    </div>
+  </div>
+  <div class="tabs" id="tabs"></div>
+  <div class="content" id="content"><div class="empty">Loading…</div></div>
+  <div class="footer"><div class="footer-text">Claude Bro PT · Data stays on device 🔒</div></div>
+</div>
+
+<script>
+const STORAGE_KEY = "pt-tracker-v2";
+const defaultData = {
+  weightHistory:[{date:"2026-03-26",weight:73.9,note:"InBody 270S baseline"}],
+  workoutHistory:[{
+    date:"2026-04-28",type:"Push (Chest / Shoulder / Tricep)",duration:120,
+    cardio:"Incline 15% | 4–4.3 km/h | 40 min",
+    exercises:[
+      {name:"Incline Chest Press",sets:[{weight:20,reps:"warm-up"},{weight:40,reps:10},{weight:40,reps:9}]},
+      {name:"Flat Chest Press",sets:[{weight:40,reps:9},{weight:30,reps:9},{weight:30,reps:9}]},
+      {name:"Chest Fly",sets:[{weight:40,reps:10},{weight:40,reps:10},{weight:35,reps:10}]},
+      {name:"Lateral Raise",sets:[{weight:5,reps:"12-16"},{weight:5,reps:"12-16"},{weight:5,reps:"12-16"}]},
+      {name:"Shoulder Press Machine",sets:[{weight:15,reps:"10-12"},{weight:15,reps:"10-12"}]},
+      {name:"Tricep Extension",sets:[{weight:9.8,reps:7},{weight:9.8,reps:7},{weight:9.8,reps:7}]}
+    ],notes:""
+  }],
+  nutritionLog:[]
+};
+
+const TABS=[{l:"Overview",i:"📊"},{l:"Workouts",i:"💪"},{l:"Weight",i:"⚖️"},{l:"AI Log",i:"🤖"}];
+const HINTS={
+  workout:"bench press 60kg 3x10, squat 80kg 4x8\nหรือ: pull day lat pulldown 50kg 3x10, cardio 30 min",
+  weight:"น้ำหนักวันนี้ 73.5 กก.\nหรือ: today weight 72.8",
+  food:"ข้าว+ไก่ผัด, ไข่ 3 ฟอง, นมโปรตีน 1 แก้ว\nหรือ: 3 eggs + rice, chicken breast, protein shake"
+};
+
+let S={data:JSON.parse(JSON.stringify(defaultData)),tab:0,expanded:null,aiStatus:"idle",aiInput:"",aiLogType:"workout",aiResult:null,aiError:""};
+
+function load(){
+  try{const d=localStorage.getItem(STORAGE_KEY);if(d)S.data=JSON.parse(d);}catch(e){}
+  render();
+}
+function save(next){
+  S.data=next;
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(next));}catch(e){}
+  render();
+}
+function fmtDate(d){return new Date(d+"T12:00:00").toLocaleDateString("th-TH",{day:"numeric",month:"short",year:"numeric"});}
+
+function updateHeader(){
+  const wh=S.data.weightHistory;
+  const latest=wh[wh.length-1];
+  const prev=wh[wh.length-2];
+  document.getElementById("hdr-weight").innerHTML=latest.weight+' <span class="weight-unit">kg</span>';
+  const el=document.getElementById("hdr-delta");
+  if(prev){const d=(latest.weight-prev.weight).toFixed(1);el.textContent=(parseFloat(d)>0?"+":"")+d+" kg";el.style.color=parseFloat(d)<0?"#6ee7b7":"#f87171";}
+  else{el.textContent="baseline";el.style.color="#52525b";}
+}
+
+function renderTabs(){
+  document.getElementById("tabs").innerHTML=TABS.map((t,i)=>
+    `<button class="tab${S.tab===i?" active":""}" onclick="switchTab(${i})">${t.i} ${t.l}</button>`
+  ).join("");
+}
+
+function switchTab(i){S.tab=i;S.expanded=null;render();}
+
+function renderOverview(){
+  return`<div class="stat-grid">
+    <div class="stat-card"><div class="stat-label">Body Fat</div><div class="stat-val" style="color:#f87171">22.4%</div><div class="stat-sub">&gt;20% ⚠</div></div>
+    <div class="stat-card"><div class="stat-label">Muscle (SMM)</div><div class="stat-val" style="color:#22d3ee">32.4 kg</div><div class="stat-sub">Normal ✓</div></div>
+    <div class="stat-card"><div class="stat-label">BMI</div><div class="stat-val" style="color:#fbbf24">23.9</div><div class="stat-sub">Slightly OW</div></div>
+    <div class="stat-card"><div class="stat-label">Visceral Fat</div><div class="stat-val" style="color:#f87171">Lv. 7</div><div class="stat-sub">Target ≤ 5</div></div>
+  </div>
+  <div class="section"><div class="section-title">Daily targets</div>
+    ${[["🔥 Calories","2,812 kcal"],["🥩 Protein","120 g/day"],["📅 Sessions","3–4 / week"]].map(([l,v])=>
+      `<div class="row"><span class="row-label">${l}</span><span class="row-val" style="color:#22d3ee;font-weight:600">${v}</span></div>`
+    ).join("")}
+  </div>
+  <div class="goal-banner">🎯 เป้า: ลด body fat &lt; <span>18%</span> · รักษา muscle mass</div>`;
+}
+
+function renderWorkouts(){
+  const wh=S.data.workoutHistory;
+  if(!wh.length)return`<div class="empty">ยังไม่มี workout<br>ใช้ AI Log เพิ่มเลย 💪</div>`;
+  return wh.slice().reverse().map((w,ri)=>{
+    const wi=wh.length-1-ri;
+    const open=S.expanded===wi;
+    return`<div class="workout-card">
+      <button class="workout-header" onclick="toggleExpand(${wi})">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div><div class="workout-title">${w.type}</div>
+          <div class="workout-date">${fmtDate(w.date)}${w.duration?" · "+w.duration+" min":""}</div></div>
+          <span class="toggle-icon">${open?"▲":"▼"}</span>
+        </div>
+        <div class="workout-meta">
+          ${w.cardio?`<span class="cardio-badge">🏃 Cardio</span>`:""}
+          ${(w.exercises||[]).length?`<span style="font-size:11px;color:#52525b">${w.exercises.length} exercises</span>`:""}
+        </div>
+      </button>
+      ${open?`<div class="workout-exercises">
+        <div class="ex-label">Exercises</div>
+        ${(w.exercises||[]).map(ex=>`<div class="ex-card">
+          <div class="ex-name">${ex.name}</div>
+          <div class="sets-wrap">${(ex.sets||[]).map(s=>`<span class="set-chip">${s.weight!=null?s.weight+"kg":"BW"} × ${s.reps}</span>`).join("")}</div>
+        </div>`).join("")}
+        ${w.cardio?`<div class="ex-label">Cardio</div><div class="ex-card"><div class="ex-name" style="color:#67e8f9">${w.cardio}</div></div>`:""}
+        ${w.notes?`<div class="ex-label">Notes</div><div class="ex-card"><div style="font-size:13px;color:#a1a1aa">${w.notes}</div></div>`:""}
+      </div>`:""}
+    </div>`;
+  }).join("");
+}
+
+function toggleExpand(i){S.expanded=S.expanded===i?null:i;render();}
+
+function renderWeight(){
+  const wh=[...S.data.weightHistory].reverse();
+  const nutHtml=S.data.nutritionLog.length?`<div class="section" style="margin-top:12px">
+    <div class="section-title">Nutrition log</div>
+    ${S.data.nutritionLog.slice(0,5).map(n=>`<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+      <div style="display:flex;justify-content:space-between"><span style="font-size:13px;color:#a1a1aa">${fmtDate(n.date)}</span><span style="font-size:12px;color:#6ee7b7">~${n.protein}g protein</span></div>
+      <div style="font-size:12px;color:#52525b;margin-top:2px">${n.meals}</div>
+    </div>`).join("")}
+  </div>`:"";
+  return`<div class="section"><div class="section-title">Weight history</div>
+    ${wh.map((w,i)=>{
+      const prev=wh[i+1];const d=prev?(w.weight-prev.weight).toFixed(1):null;
+      return`<div class="weight-row">
+        <div><div class="wr-date">${fmtDate(w.date)}</div>${w.note?`<div class="wr-note">${w.note}</div>`:""}</div>
+        <div style="text-align:right"><div class="wr-kg">${w.weight} kg</div>
+        ${d?`<div class="wr-delta" style="color:${parseFloat(d)<0?"#6ee7b7":"#f87171"}">${parseFloat(d)>0?"+":""}${d} kg</div>`:""}</div>
+      </div>`;
+    }).join("")}
+  </div>${nutHtml}`;
+}
+
+const SYS=`You are a fitness data parser. Return ONLY valid JSON, no markdown, no explanation.
+Today: ${new Date().toISOString().slice(0,10)}
+WORKOUT: {"type":"workout","date":"YYYY-MM-DD","workoutType":"Push/Pull/Legs/etc","duration":number|null,"cardio":"string|null","exercises":[{"name":"","sets":[{"weight":number|null,"reps":""}],"note":""}]}
+WEIGHT: {"type":"weight","date":"YYYY-MM-DD","weight":number,"note":""}
+FOOD: {"type":"nutrition","date":"YYYY-MM-DD","meals":"","estimatedProtein":number,"estimatedCalories":number,"note":""}
+Parse Thai and English. Handle shorthand: 3x10, 40kg, 3 set 10 rep.`;
+
+async function aiSubmit(){
+  const input=document.getElementById("ai-input").value.trim();
+  if(!input)return;
+  S.aiStatus="loading";S.aiInput=input;S.aiResult=null;S.aiError="";render();
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,system:SYS,messages:[{role:"user",content:input}]})
+    });
+    const d=await res.json();
+    const raw=d.content?.find(b=>b.type==="text")?.text||"";
+    S.aiResult=JSON.parse(raw.replace(/```json|```/g,"").trim());
+    S.aiStatus="preview";
+  }catch(e){S.aiError="Parse ไม่ได้ ลองใหม่อีกครั้ง 🙏";S.aiStatus="error";}
+  render();
+}
+
+async function aiConfirm(){
+  const r=S.aiResult;if(!r)return;
+  const next={...S.data,workoutHistory:[...S.data.workoutHistory],weightHistory:[...S.data.weightHistory],nutritionLog:[...(S.data.nutritionLog||[])]};
+  if(r.type==="workout")next.workoutHistory=[{date:r.date,type:r.workoutType,duration:r.duration,cardio:r.cardio,exercises:r.exercises||[],notes:""},...next.workoutHistory];
+  else if(r.type==="weight")next.weightHistory=[...next.weightHistory,{date:r.date,weight:r.weight,note:r.note||""}];
+  else if(r.type==="nutrition")next.nutritionLog=[{date:r.date,meals:r.meals,protein:r.estimatedProtein,calories:r.estimatedCalories,note:r.note||""},...next.nutritionLog];
+  S.aiStatus="done";S.aiResult=null;S.aiInput="";
+  save(next);
+  setTimeout(()=>{S.aiStatus="idle";render();},3000);
+}
+
+function aiCancel(){S.aiStatus="idle";S.aiResult=null;render();}
+function setLogType(t){S.aiLogType=t;render();}
+
+function renderAILog(){
+  const st=S.aiStatus;const lt=S.aiLogType;
+  const btnStyle=`background:${st==="loading"?"rgba(34,211,238,0.3)":"#22d3ee"};color:#0a0a0f;opacity:${!S.aiInput.trim()?0.4:1}`;
+  let bottom="";
+  if(st==="loading")bottom=`<div style="text-align:center;padding:20px;font-size:13px;color:#52525b">🤖 กำลัง Parse...</div>`;
+  else if(st==="preview"&&S.aiResult){
+    const r=S.aiResult;
+    let rows="";
+    const row=(l,v)=>`<div class="row"><span class="row-label">${l}</span><span class="row-val">${v}</span></div>`;
+    if(r.type==="workout"){
+      rows+=row("วันที่",fmtDate(r.date))+row("ประเภท",r.workoutType);
+      if(r.cardio)rows+=row("Cardio",r.cardio);
+      if(r.duration)rows+=row("Duration",r.duration+" min");
+      if(r.exercises?.length)rows+=`<div style="padding-top:8px"><div class="section-title" style="margin-bottom:6px">Exercises</div>
+        ${r.exercises.map(ex=>`<div class="ex-card" style="margin-bottom:6px"><div class="ex-name">${ex.name}</div>
+        <div class="sets-wrap">${(ex.sets||[]).map(s=>`<span class="set-chip">${s.weight!=null?s.weight+"kg":"BW"} × ${s.reps}</span>`).join("")}</div></div>`).join("")}
+      </div>`;
+    }else if(r.type==="weight"){rows+=row("วันที่",fmtDate(r.date))+row("น้ำหนัก",r.weight+" kg");if(r.note)rows+=row("Note",r.note);}
+    else if(r.type==="nutrition"){rows+=row("วันที่",fmtDate(r.date))+row("อาหาร",r.meals)+row("~Protein",r.estimatedProtein+"g")+row("~Calories",r.estimatedCalories+" kcal");}
+    bottom=`<div class="preview-card">
+      <div class="preview-header"><span class="preview-title">ตรวจสอบข้อมูล</span><span class="preview-badge">${r.type}</span></div>
+      <div class="preview-body">${rows}</div>
+      <div class="preview-actions"><button class="confirm-btn" onclick="aiConfirm()">✅ บันทึกเลย!</button><button class="cancel-btn" onclick="aiCancel()">ยกเลิก</button></div>
+    </div>`;
+  }else if(st==="done")bottom=`<div class="done-card"><div class="done-icon">🎉</div><div class="done-text">บันทึกเสร็จแล้ว!</div></div>`;
+  else if(st==="error")bottom=`<div class="error-card">${S.aiError}</div>`;
+
+  return`<div class="type-btns">
+    ${[["workout","💪 Workout"],["weight","⚖️ Weight"],["food","🥗 Food"]].map(([v,l])=>
+      `<button class="type-btn${lt===v?" active":""}" onclick="setLogType('${v}')">${l}</button>`).join("")}
+  </div>
+  <div class="hint-box"><div class="hint-title">💡 ตัวอย่าง</div><div class="hint-text">${HINTS[lt]}</div></div>
+  <textarea id="ai-input" rows="5" placeholder="พิมพ์หรือวาง workout / น้ำหนัก / อาหาร...">${S.aiInput}</textarea>
+  <button class="submit-btn" style="${btnStyle}" onclick="aiSubmit()" ${st==="loading"||!S.aiInput.trim()?"disabled":""}>
+    ${st==="loading"?"🤖 กำลัง Parse...":"🤖 ให้ AI อ่านและบันทึก"}
+  </button>${bottom}`;
+}
+
+function render(){
+  updateHeader();renderTabs();
+  const map={0:renderOverview,1:renderWorkouts,2:renderWeight,3:renderAILog};
+  document.getElementById("content").innerHTML=(map[S.tab]||renderOverview)();
+  if(S.tab===3&&document.getElementById("ai-input"))document.getElementById("ai-input").value=S.aiInput;
+}
+
+window.switchTab=switchTab;window.toggleExpand=toggleExpand;window.setLogType=setLogType;
+window.aiSubmit=aiSubmit;window.aiConfirm=aiConfirm;window.aiCancel=aiCancel;
+
+load();
+</script>
+</body>
+</html>
